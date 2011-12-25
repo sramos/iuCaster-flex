@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="initVars()" >	
+<mx:Script>
+	<![CDATA[
+		import mx.controls.Alert;
+		import NetConnectionClient;
+ 		import flash.events.NetStatusEvent;
+ 		
+ 		public var nc:NetConnection;
+		public var nsPublish:NetStream;   
+
+                // Parameters assigned from flash vars
+                public var rtmp_url:String;
+                public var token:String;
+
+		private var camera:Camera;
+
+		// Register callback to expose function to javascript
+		//ExternalInterface.addCallback("initCamera", initCamera);
+		//ExternalInterface.addCallback("startPublishing", startPublishing);
+		
+		// Assign values to new properties.
+		private function initVars():void {
+			rtmp_url = mx.core.FlexGlobals.topLevelApplication.parameters.rtmp_url;
+			token = mx.core.FlexGlobals.topLevelApplication.parameters.id;
+			// Register callback to expose function to javascript
+			ExternalInterface.addCallback("startPublishing", startPublishing);
+			ExternalInterface.addCallback("stopPublishing", stopPublishing);
+			initCamera();
+		}	
+		//Attaching Camera to the VideoDisplay
+		private function initCamera():void {
+                        camera = Camera.getCamera();
+			camera.setMode(320, 240, 30, false);
+			camera.setQuality(0, 88);
+			camera.setKeyFrameInterval(15);	
+			pubVideo.attachCamera(camera); 
+		}
+		
+		// Initializing Connection and invoking publishStream
+		private function startPublishing():void{
+			if (camera == null) {
+				initCamera();
+			}
+			nc = new NetConnection();
+			nc.client = new NetConnectionClient();	
+			nc.objectEncoding = flash.net.ObjectEncoding.AMF0;	      			
+			nc.connect("rtmp://" + rtmp_url + "?id=" + token); //Path to FMS Server e.g. rtmp://<hostname>/<application name>
+			
+			nc.addEventListener("netStatus", publishStream);	//Listener to see if connection is successful
+		}
+
+		// Stop publishing now
+		private function stopPublishing():void{
+			camera = null;
+			nc.close();
+			pubVideo.attachCamera(null);
+			//pubVideo.clear();
+		}
+
+		private function publishStream(event:NetStatusEvent):void{
+			if(nc.connected){
+				nsPublish = new NetStream(nc);  //Initializing NetStream
+				nsPublish.attachCamera(Camera.getCamera());
+				nsPublish.attachAudio(Microphone.getMicrophone()); //Attaching Camera & Microphone
+				nsPublish.publish("live"); //Publish stream
+			}
+			else {
+				// Only show error if camera is active
+				if (camera != null) {
+					mx.controls.Alert.show("Connection Error");
+				}
+			}
+		}	
+	]]>
+</mx:Script>
+
+  <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
+	
+</mx:Application>
