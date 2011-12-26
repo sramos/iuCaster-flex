@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="initVars()" >	
-<mx:Script>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+		paddingTop="10"
+		paddingLeft="0"
+	        paddingRight="0"
+	        paddingBottom="10"
+		creationComplete="initVars()" >	
+  <mx:Script>
 	<![CDATA[
 		import mx.controls.Alert;
 		import NetConnectionClient;
  		import flash.events.NetStatusEvent;
+		import mx.events.ListEvent;
  		
  		public var nc:NetConnection;
 		public var nsPublish:NetStream;   
@@ -30,13 +36,29 @@
 		}	
 		//Attaching Camera to the VideoDisplay
 		private function initCamera():void {
-                        camera = Camera.getCamera();
-			camera.setMode(320, 240, 30, false);
-			camera.setQuality(0, 88);
-			camera.setKeyFrameInterval(15);	
-			pubVideo.attachCamera(camera); 
+			camera = Camera.getCamera();
+			configureCamera();
 		}
-		
+
+		private function changeCamera(evt:ListEvent):void {
+			//var tList:List = evt.currentTarget as List;
+			//var cameraName:String = tList.selectedIndex.toString();
+			var cameraName:String = evt.currentTarget.selectedIndex.toString();
+			camera = Camera.getCamera(cameraName);
+			configureCamera();
+			pubVideo.attachCamera(camera);
+			if (nc.connected) {
+				nsPublish.attachCamera(camera);
+			}
+		}
+
+		private function configureCamera():void {
+			camera.setMode(320, 240, 30, false);
+                        camera.setQuality(0, 88);
+                        camera.setKeyFrameInterval(15); 
+                        pubVideo.attachCamera(camera);
+		}
+
 		// Initializing Connection and invoking publishStream
 		private function startPublishing():void{
 			if (camera == null) {
@@ -55,13 +77,13 @@
 			camera = null;
 			nc.close();
 			pubVideo.attachCamera(null);
-			//pubVideo.clear();
+			//pubVideo.mx_internal::videoPlayer.clear();
 		}
 
 		private function publishStream(event:NetStatusEvent):void{
 			if(nc.connected){
 				nsPublish = new NetStream(nc);  //Initializing NetStream
-				nsPublish.attachCamera(Camera.getCamera());
+				nsPublish.attachCamera(camera);
 				nsPublish.attachAudio(Microphone.getMicrophone()); //Attaching Camera & Microphone
 				nsPublish.publish("live"); //Publish stream
 			}
@@ -73,8 +95,11 @@
 			}
 		}	
 	]]>
-</mx:Script>
+  </mx:Script>
 
   <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
+  <!--<mx:Button label="publish Stream" click="startPublishing()"/>
+  <mx:Button label="stop Stream" click="stopPublishing()"/>-->
+  <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/>
 	
 </mx:Application>
