@@ -11,6 +11,7 @@
 		import NetConnectionClient;
  		import flash.events.NetStatusEvent;
 		import mx.events.ListEvent;
+		import mx.events.VideoEvent;
  		
  		public var nc:NetConnection;
 		public var nsPublish:NetStream;   
@@ -64,6 +65,7 @@
 			if (camera == null) {
 				initCamera();
 			}
+			fadeIn.play([rec]);
 			nc = new NetConnection();
 			nc.client = new NetConnectionClient();	
 			nc.objectEncoding = flash.net.ObjectEncoding.AMF0;	      			
@@ -76,6 +78,7 @@
 		private function stopPublishing():void{
 			camera = null;
 			nc.close();
+			fadeOut.play([rec]);
 			pubVideo.attachCamera(null);
 			//pubVideo.mx_internal::videoPlayer.clear();
 		}
@@ -93,13 +96,54 @@
 					mx.controls.Alert.show("Connection Error");
 				}
 			}
-		}	
+		}
+
+		private function showControls():void {
+			fadeIn.play([controls]);
+		}
+ 
+		private function hideControls():void {
+			fadeOut.play([controls]);
+		}
 	]]>
   </mx:Script>
 
-  <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
+  <mx:Style>
+        .controllerStyle {
+            bottom: 5;
+            left: 5;
+            right: 5;
+            paddingBottom: 5;
+            paddingLeft: 5;
+            paddingRight: 5;
+            paddingTop: 5;
+            alpha: 0;
+            background-color: #000000;
+            background-alpha: 0.5;
+        }
+        .recStyle {
+	    left: 5;
+	    top: 5;
+	    alpha: 0;
+	    background-color: #000000;
+	    background-alpha: 0.5;
+            color: #FF0000;
+	    fontWeight: "bold";
+        }
+  </mx:Style>
+
+  <mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" />
+  <mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" />
+
+  <mx:Canvas rollOver="showControls()" rollOut="hideControls()">
+    <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
+    <mx:Label id="rec" styleName="recStyle" text="REC" alpha="0.0"/>
+    <mx:HBox id="controls" styleName="controllerStyle" alpha="0.0">
+      <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/> 
+    </mx:HBox>
+  </mx:Canvas>
+
   <!--<mx:Button label="publish Stream" click="startPublishing()"/>
   <mx:Button label="stop Stream" click="stopPublishing()"/>-->
-  <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/>
-	
+
 </mx:Application>
