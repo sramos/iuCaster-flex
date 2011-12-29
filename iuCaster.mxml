@@ -137,7 +137,7 @@
 
   <mx:Canvas rollOver="showControls()" rollOut="hideControls()">
     <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
-    <mx:Label id="rec" styleName="recStyle" text="REC" alpha="0.0"/>
+    <mx:Label id="rec" styleName="recStyle" text="LIVE" alpha="0.0"/>
     <mx:HBox id="controls" styleName="controllerStyle" alpha="0.0">
       <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/> 
     </mx:HBox>
