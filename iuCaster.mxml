@@ -20,10 +20,12 @@
                 public var rtmp_url:String;
                 public var token:String;
 
+		private var isLive:Boolean = false;
 		private var camera:Camera;
+		private var preCamera:Camera;
 
 		// Register callback to expose function to javascript
-		//ExternalInterface.addCallback("initCamera", initCamera);
+		//ExternalInterface.addCallback("initCamera", initCameras);
 		//ExternalInterface.addCallback("startPublishing", startPublishing);
 		
 		// Assign values to new properties.
@@ -33,38 +35,70 @@
 			// Register callback to expose function to javascript
 			ExternalInterface.addCallback("startPublishing", startPublishing);
 			ExternalInterface.addCallback("stopPublishing", stopPublishing);
-			initCamera();
-		}	
-		//Attaching Camera to the VideoDisplay
-		private function initCamera():void {
-			camera = Camera.getCamera();
-			configureCamera();
+			initCameras();
+		}
+
+		// Show all cameras
+		private function initCameras():void {
+			var cams:Array = Camera.names;
+			camera = Camera.getCamera("0");
+			if (cams.length > 1) {
+                          cameras.includeInLayout=true;
+			  preCamera = Camera.getCamera("0");
+                          preVideo.visible = true;
+                          preVideoLabel.visible = true;
+                          preVideo.attachCamera(preCamera);
+                        }
+                        pubVideo.attachCamera(camera);
+
+			for (var camId:String in cams) {
+			  var cam:Camera = Camera.getCamera(camId);
+			  cam.setMode(320, 240, 30, false);
+			  cam.setQuality(0, 88);
+			  cam.setKeyFrameInterval(15);
+			  if (cams.length > 1) {
+			    var _cam:VideoDisplay = cameras.getChildByName('cam'+camId)  as VideoDisplay;
+                            //var _camLabel:Label = ('cam'+camId+'Label') as Label;
+			    //var _cam:DisplayObject = cameras.getChildByName('cam'+camId);
+			    var _camLabel:DisplayObject = cameras.getChildByName('cam'+camId+'Label');
+			    _cam.visible = true;
+			    _camLabel.visible = true;
+			    _cam.attachCamera(cam);
+                          }
+			}
+		}
+
+		private function changePrev(camId:int):void {
+			preCamera = Camera.getCamera(camId.toString());
+			preVideo.attachCamera(preCamera);
+		}
+
+		private function changePub():void {
+			var _cam:Camera = camera;
+			camera = preCamera;
+			preCamera = _cam;
+			pubVideo.attachCamera(camera);
+			preVideo.attachCamera(preCamera);
+			if (nc.connected) {
+                                nsPublish.attachCamera(camera);
+                        }	
 		}
 
 		private function changeCamera(evt:ListEvent):void {
-			//var tList:List = evt.currentTarget as List;
-			//var cameraName:String = tList.selectedIndex.toString();
 			var cameraName:String = evt.currentTarget.selectedIndex.toString();
 			camera = Camera.getCamera(cameraName);
-			configureCamera();
 			pubVideo.attachCamera(camera);
 			if (nc.connected) {
 				nsPublish.attachCamera(camera);
 			}
 		}
 
-		private function configureCamera():void {
-			camera.setMode(320, 240, 30, false);
-                        camera.setQuality(0, 88);
-                        camera.setKeyFrameInterval(15); 
-                        pubVideo.attachCamera(camera);
-		}
-
 		// Initializing Connection and invoking publishStream
 		private function startPublishing():void{
 			if (camera == null) {
-				initCamera();
+				initCameras();
 			}
+			isLive = true;
 			fadeIn.play([rec]);
 			nc = new NetConnection();
 			nc.client = new NetConnectionClient();	
@@ -76,10 +110,10 @@
 
 		// Stop publishing now
 		private function stopPublishing():void{
-			camera = null;
+			isLive = false;
 			nc.close();
 			fadeOut.play([rec]);
-			pubVideo.attachCamera(null);
+			//pubVideo.attachCamera(null);
 			//pubVideo.mx_internal::videoPlayer.clear();
 		}
 
@@ -92,7 +126,8 @@
 			}
 			else {
 				// Only show error if camera is active
-				if (camera != null) {
+				if (isLive) {
+					isLive = false;
 					mx.controls.Alert.show("Connection Error");
 				}
 			}
@@ -130,17 +165,43 @@
             color: #FF0000;
 	    fontWeight: "bold";
         }
+	.camerasCanvasStyle {
+	    left: 330;
+	    top: 0;
+	}
+	.camNameStyle {
+	    left: 5;
+            alpha: 0;
+            background-color: #000000;
+            background-alpha: 0.5;
+            color: #FFFFFF;
+            fontWeight: "bold";
+	}
   </mx:Style>
 
   <mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" />
   <mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" />
 
-  <mx:Canvas rollOver="showControls()" rollOut="hideControls()">
-    <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
-    <mx:Label id="rec" styleName="recStyle" text="LIVE" alpha="0.0"/>
-    <mx:HBox id="controls" styleName="controllerStyle" alpha="0.0">
-      <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/> 
-    </mx:HBox>
+  <mx:Canvas>
+    <mx:Canvas rollOver="showControls()" rollOut="hideControls()">
+      <mx:VideoDisplay width="320" height="240" id="pubVideo"/>
+      <mx:Label id="rec" styleName="recStyle" text="LIVE" alpha="0.0"/>
+      <mx:HBox id="controls" styleName="controllerStyle" alpha="0.0">
+        <mx:ComboBox id="cameras_cb" dataProvider="{Camera.names}" change="changeCamera(event)"/> 
+      </mx:HBox>
+    </mx:Canvas>
+    <mx:Canvas id="cameras" styleName="camerasCanvasStyle" includeInLayout="false">
+      <mx:VideoDisplay width="160" height="120" id="preVideo" visible="false" click="changePub()"/>
+      <mx:Label styleName="camNameStyle" id="preVideoLabel" text="Prev" top="5" left="5" visible="false"/> 
+      <mx:VideoDisplay width="80" height="60" left="0" top="120" id="cam0" visible="false" click="changePrev(0)"/>
+      <mx:Label styleName="camNameStyle" id="cam0Label" text="Cam0" left="5" top="125" visible="false"/>
+      <mx:VideoDisplay width="80" height="60" left="80" top="120" id="cam1" visible="false" click="changePrev(1)"/>
+      <mx:Label styleName="camNameStyle" id="cam1Label" text="Cam1" left="85" top="125" visible="false"/>
+      <mx:VideoDisplay width="80" height="60" left="0" top="180" id="cam2" visible="false" click="changePrev(2)"/>
+      <mx:Label styleName="camNameStyle" id="cam2Label" text="Cam2" left="5" top="185" visible="false"/>
+      <mx:VideoDisplay width="80" height="60" left="80" top="180" id="cam3" visible="false" click="changePrev(3)"/>
+      <mx:Label styleName="camNameStyle" id="cam3Label" text="Cam3" left="85" top="185" visible="false"/>
+    </mx:Canvas>
   </mx:Canvas>
 
   <!--<mx:Button label="publish Stream" click="startPublishing()"/>
