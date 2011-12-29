@@ -193,13 +193,13 @@
     <mx:Canvas id="cameras" styleName="camerasCanvasStyle" includeInLayout="false">
       <mx:VideoDisplay width="160" height="120" id="preVideo" visible="false" click="changePub()"/>
       <mx:Label styleName="camNameStyle" id="preVideoLabel" text="Prev" top="5" left="5" visible="false"/> 
-      <mx:VideoDisplay width="80" height="60" left="0" top="120" id="cam0" visible="false" click="changePrev(0)"/>
+      <mx:VideoDisplay width="80" height="60" left="0" top="120" id="cam0" visible="false" click="changePrev(0)" doubleClickEnabled="true" doubleClick="changePub()"/>
       <mx:Label styleName="camNameStyle" id="cam0Label" text="Cam0" left="5" top="125" visible="false"/>
-      <mx:VideoDisplay width="80" height="60" left="80" top="120" id="cam1" visible="false" click="changePrev(1)"/>
+      <mx:VideoDisplay width="80" height="60" left="80" top="120" id="cam1" visible="false" click="changePrev(1)" doubleClickEnabled="true" doubleClick="changePub()"/>
       <mx:Label styleName="camNameStyle" id="cam1Label" text="Cam1" left="85" top="125" visible="false"/>
-      <mx:VideoDisplay width="80" height="60" left="0" top="180" id="cam2" visible="false" click="changePrev(2)"/>
+      <mx:VideoDisplay width="80" height="60" left="0" top="180" id="cam2" visible="false" click="changePrev(2)" doubleClickEnabled="true" doubleClick="changePub()"/>
       <mx:Label styleName="camNameStyle" id="cam2Label" text="Cam2" left="5" top="185" visible="false"/>
-      <mx:VideoDisplay width="80" height="60" left="80" top="180" id="cam3" visible="false" click="changePrev(3)"/>
+      <mx:VideoDisplay width="80" height="60" left="80" top="180" id="cam3" visible="false" click="changePrev(3)" doubleClickEnabled="true" doubleClick="changePub()"/>
       <mx:Label styleName="camNameStyle" id="cam3Label" text="Cam3" left="85" top="185" visible="false"/>
     </mx:Canvas>
   </mx:Canvas>
