@@ -1,0 +1,32 @@
+.controllerStyle {
+  bottom: 5;
+  left: 5;
+  right: 5;
+  paddingBottom: 5;
+  paddingLeft: 5;
+  paddingRight: 5;
+  paddingTop: 5;
+  alpha: 0;
+  background-color: #000000;
+  background-alpha: 0.5;
+}
+
+.recStyle {
+  left: 5;
+  top: 5;
+  alpha: 0;
+  background-color: #000000;
+  background-alpha: 0.5;
+  color: #FF0000;
+  fontWeight: "bold";
+}
+
+.camNameStyle {
+  left: 5;
+  alpha: 0;
+  background-color: #000000;
+  background-alpha: 0.5;
+  color: #FFFFFF;
+  fontWeight: "bold";
+}
+
