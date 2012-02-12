@@ -24,6 +24,7 @@ private var preCamera:Camera;
 		
 // Assign values to new properties.
 private function initVars():void {
+  Security.showSettings(SecurityPanel.PRIVACY);
   rtmp_url = mx.core.FlexGlobals.topLevelApplication.parameters.rtmp_url;
   token = mx.core.FlexGlobals.topLevelApplication.parameters.id;
   // Register callback to expose function to javascript
